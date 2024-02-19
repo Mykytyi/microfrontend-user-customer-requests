@@ -1,0 +1,7 @@
+{
+  "CASE_MASTER_SERVICE_URL": "http://localhost:6081/CaseMasterService",
+  "ENABLE_MASTER_CASE_VALIDATION": false,
+  "tracing": {
+    "enabled": false
+  }
+}

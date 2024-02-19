@@ -1,0 +1,18 @@
+.Table {
+  .TableToolsContainer {
+    margin-bottom: 16px;
+  }
+
+  .TableContainer {
+    min-height: 400px;
+
+    .Table {
+      margin-bottom: 16px;
+    }
+
+    .ButtonsContainer {
+      display: flex;
+      justify-content: center;
+    }
+  }
+}

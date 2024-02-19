@@ -1,0 +1,41 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+ - deployment.yaml
+ - configmap.yaml
+ - service.yaml
+#  add configmap.yaml or secret.yaml depending what is needed
+#  - secret.yaml
+
+labels:
+  - pairs:
+      app.kubernetes.io/name: microfrontend-user-customer-requests
+      app.kubernetes.io/part-of: automatix
+      app.kubernetes.io/instance: microfrontend-user-customer-requests-dev
+      app.kubernetes.io/component: Widget
+      app.kubernetes.io/managed-by: ArgoCD
+    includeSelectors: false
+    includeTemplates: true
+
+patchesStrategicMerge:
+  - |-
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: microfrontend-user-customer-requests
+      labels:
+        app.kubernetes.io/version: 1.0.9
+    spec:
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/version: 1.0.9
+        spec:
+          containers:
+            - name: microfrontend-user-customer-requests
+              image: tasktrack.telekom.at/gucci-docker/microfrontend-user-customer-requests:1.0.9
+              env:
+                - name: NODE_ENV
+                  value: development
+      replicas: 1

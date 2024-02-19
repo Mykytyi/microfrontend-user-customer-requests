@@ -1,0 +1,12 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: microfrontend-user-customer-requests
+  description: microfrontend-user-customer-requests
+  annotations:
+    'jenkins.io/job-full-name': automatix/microfrontend-user-customer-requests
+    'grafana/tag-selector': microfrontend-user-customer-requests
+spec:
+  type: microfrontend
+  lifecycle: production
+  owner: automatix

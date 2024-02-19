@@ -1,0 +1,69 @@
+/**
+ * GUCCI Widget CI multibranch pipeline.
+ * The branch name is passed in the environment variable BRANCH_NAME by jenkins.
+ */
+
+def JENKINS_WORKER_LABEL = null
+def JENKINS_GIT_CREDENTIALS_ID = 'dk_crm_gucci'
+def JENKINS_NODE_JS_INSTALLATION_LABEL = 'node18'
+
+def GIT_REPO = 'tasktrack.telekom.at/bitbucket/scm/ccf/microfrontend-user-customer-requests.git'
+def INFORM_ABOUT_FAILURE = 'nikita.cherevatyi@extern.a1.at'
+
+pipeline {
+  agent {
+    label JENKINS_WORKER_LABEL
+  }
+
+  triggers {
+    pollSCM 'H/15 * * * *'
+  }
+
+  stages {
+    stage('Checkout') {
+      steps {
+        echo "Checking out branch: ${BRANCH_NAME}"
+        git branch: "${BRANCH_NAME}", credentialsId: JENKINS_GIT_CREDENTIALS_ID, url: "https://${GIT_REPO}"
+      }
+    }
+
+    stage('Install dependencies') {
+      steps {
+        nodejs(JENKINS_NODE_JS_INSTALLATION_LABEL) {
+          sh 'npm ci'
+        }
+      }
+    }
+
+    stage('Static analysis and test') {
+      steps {
+        nodejs(JENKINS_NODE_JS_INSTALLATION_LABEL) {
+          sh 'npm run type-check'
+          sh 'npm run lint'
+          sh 'npm run test'
+        }
+      }
+    }
+
+    stage('Build') {
+      steps {
+        nodejs(JENKINS_NODE_JS_INSTALLATION_LABEL) {
+          sh 'npm run build'
+        }
+      }
+    }
+  }
+
+  post {
+    success {
+      junit '**/test-reports/*.xml'
+    }
+
+    failure {
+      emailext to: INFORM_ABOUT_FAILURE,
+        recipientProviders: [[$class: 'DevelopersRecipientProvider']],
+        subject: "Jenkins CI Pipeline '${JOB_NAME}' (${BUILD_NUMBER}) branch ${BRANCH_NAME} failed",
+        body: "Please go to ${BUILD_URL} and verify the build"
+    }
+  }
+}

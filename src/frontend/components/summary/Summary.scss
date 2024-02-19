@@ -1,0 +1,35 @@
+.Summary {
+
+  .ButtonsContainer {
+    display: flex;
+    margin-bottom: 16px;
+
+    & > * {
+      margin-right: 4px;
+      border-radius: 4px;
+    }
+    & > *:last-child {
+      margin-right: 0;
+    }
+  }
+
+  .CasesContainer {
+
+  }
+}
+
+.Placeholder {
+  .ButtonsContainer {
+    display: flex;
+    margin-bottom: 16px;
+
+    & > * {
+      margin-right: 4px;
+      border-radius: 10px;
+    }
+  }
+
+  .CasesContainer > * {
+    margin-bottom: 16px;
+  }
+}

@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: microfrontend-user-customer-requests
+  labels:
+    app.kubernetes.io/version: 1.0.0
+spec:
+  replicas: 1
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: microfrontend-user-customer-requests
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/version: 1.0.0
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+      containers:
+        - name: microfrontend-user-customer-requests
+          image: tasktrack.telekom.at/gucci-docker/microfrontend-user-customer-requests:1.0.0
+          env:
+            - name: NODE_ENV
+              value: 'development'
+            - name: NODE_OPTIONS
+              value: "--max_old_space_size=110"
+            - name: ENABLE_DEBUG_LOG
+              value: "false"
+            - name: ENABLE_MASTER_CASE_VALIDATION
+              value: "true"
+            - name: SUPPRESS_NO_CONFIG_WARNING
+              value: "1"
+            - name: CASE_MASTER_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: microfrontend-user-customer-requests
+                  key: CASE_MASTER_SERVICE_URL
+            - name: TRACING_ENABLED
+              valueFrom:
+                configMapKeyRef:
+                  name: gucci-config
+                  key: TRACING_ENABLED
+            - name: TRACING_ORIGIN
+              valueFrom:
+                configMapKeyRef:
+                  name: gucci-config
+                  key: TRACING_ORIGIN
+            - name: TRACING_PATH
+              valueFrom:
+                configMapKeyRef:
+                  name: gucci-config
+                  key: TRACING_PATH
+          ports:
+            - containerPort: 9010
+          resources:
+            requests:
+              memory: 128Mi
+              cpu: 50m
+            limits:
+              memory: 128Mi
+              cpu: 250m
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 9010
+            initialDelaySeconds: 3
+            periodSeconds: 5
+            failureThreshold: 2
+            timeoutSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /live
+              port: 9010
+            initialDelaySeconds: 3
+            periodSeconds: 10
+            failureThreshold: 2
+      imagePullSecrets:
+        - name: tasktrack.telekom.at

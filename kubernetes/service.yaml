@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: microfrontend-user-customer-requests
+spec:
+  selector:
+    app.kubernetes.io/name: microfrontend-user-customer-requests
+  ports:
+    - protocol: TCP
+      port: 9010
+      targetPort: 9010

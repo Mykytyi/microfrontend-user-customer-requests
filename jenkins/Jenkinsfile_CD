@@ -1,0 +1,170 @@
+/**
+ * GUCCI Widget CD pipeline.
+ */
+
+def JENKINS_WORKER_LABEL = null
+def JENKINS_GIT_CREDENTIALS_ID = 'dk_crm_gucci'
+def JENKINS_NODE_JS_INSTALLATION_LABEL = 'node18'
+
+def GIT_REPO = 'tasktrack.telekom.at/bitbucket/scm/ccf/microfrontend-user-customer-requests.git'
+def INFORM_ABOUT_FAILURE = 'nikita.cherevatyi@extern.a1.at'
+
+def createNewVersion = false
+def newVersion
+
+pipeline {
+  agent {
+    label JENKINS_WORKER_LABEL
+  }
+
+  options {
+    timeout(15) // timeout after 15min
+    disableConcurrentBuilds()
+  }
+
+  triggers {
+    pollSCM 'H/15 * * * *'
+  }
+
+  environment {
+    GIT_BRANCH = getGitBranch()
+  }
+
+  stages {
+    stage('Checkout') {
+      steps {
+        deleteDir()
+        echo "Building branch ${GIT_BRANCH}"
+        git branch: GIT_BRANCH, credentialsId: JENKINS_GIT_CREDENTIALS_ID, url: "https://${GIT_REPO}"
+        script {
+          def lastCDBuildFailed = currentBuild.getPreviousBuild()?.result == 'FAILURE'
+          createNewVersion = lastCDBuildFailed || checkShallCreateNewVersion()
+        }
+      }
+    }
+
+    stage('Install dependencies') {
+      steps {
+        nodejs(JENKINS_NODE_JS_INSTALLATION_LABEL) {
+          sh 'npm ci'
+        }
+      }
+    }
+
+    stage('Static analysis and test') {
+      steps {
+        nodejs(JENKINS_NODE_JS_INSTALLATION_LABEL) {
+          sh 'npm run type-check'
+          sh 'npm run lint'
+          sh 'no_proxy=* npm run test'
+        }
+      }
+    }
+
+    stage('Build') {
+      when {
+        expression {
+          return createNewVersion
+        }
+      }
+      steps {
+        nodejs(JENKINS_NODE_JS_INSTALLATION_LABEL) {
+          sh 'npm run build'
+        }
+      }
+    }
+
+    stage('Create Version') {
+      when {
+        expression {
+          return createNewVersion
+        }
+      }
+      steps {
+        nodejs(JENKINS_NODE_JS_INSTALLATION_LABEL) {
+          sh 'npm --no-git-tag-version version patch -m "Upgrade to %s [Jenkins]"'
+        }
+        script {
+          newVersion = getPackageVersion();
+        }
+      }
+    }
+
+    stage('Create Docker Image') {
+      when {
+        expression {
+          return createNewVersion
+        }
+      }
+      steps {
+        nodejs(JENKINS_NODE_JS_INSTALLATION_LABEL) {
+          sh 'npm run docker-push-image'
+        }
+      }
+    }
+
+    stage('Trigger DEV Deployment') {
+      when {
+        expression {
+          return createNewVersion
+        }
+      }
+      steps {
+        nodejs(JENKINS_NODE_JS_INSTALLATION_LABEL) {
+          sh 'node kubernetes/syncVersion.js'
+        }
+        withCredentials([usernamePassword(credentialsId: JENKINS_GIT_CREDENTIALS_ID, passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
+          sh 'git add -u'
+          sh 'git commit -m "Updating DEV version [Jenkins]"'
+          sh "git tag v${newVersion} -am \"v${newVersion}\""
+          sh "git push https://${GIT_USERNAME}:${GIT_PASSWORD}@${GIT_REPO} ${GIT_BRANCH} --tags --no-verify"
+        }
+      }
+    }
+  }
+
+  post {
+    success {
+      junit '**/test-reports/*.xml'
+    }
+
+    failure {
+      emailext to: INFORM_ABOUT_FAILURE,
+        recipientProviders: [[$class: 'DevelopersRecipientProvider']],
+        subject: "Jenkins CD Pipeline '${JOB_NAME}' (${BUILD_NUMBER}) failed",
+        body: "Please go to ${BUILD_URL} and verify the build"
+    }
+  }
+
+}
+
+def getGitBranch() {
+  return env.GIT_BRANCH.substring('origin/'.length())
+}
+
+def getPackageVersion() {
+  def packageJson = readJSON file: 'package.json'
+  return packageJson.version
+}
+
+private boolean checkShallCreateNewVersion() {
+  ArrayList commitMessages = [];
+  def changeLogSets = currentBuild.changeSets
+  for (int i = 0; i < changeLogSets.size(); i++) {
+    def entries = changeLogSets[i].items
+    for (int j = 0; j < entries.length; j++) {
+      def entry = entries[j]
+      commitMessages.push(entry.msg);
+    }
+  }
+
+  echo('New commit messages: ' + commitMessages.join('\n'))
+
+  def commitsOnlyFromJenkins = commitMessages.every{msg -> msg.contains("[Jenkins]")}
+  if (commitsOnlyFromJenkins) {
+    echo('Only changes by Jenkins found, don\'t create a new version')
+    return false
+  }
+
+  return true
+}

@@ -1,0 +1,36 @@
+.ToolsContainer {
+  display: flex;
+
+  .DatesContainer {
+    display: flex;
+    margin-right: 16px;
+
+    .DateFrom {
+      max-width: 200px;
+      margin-right: 8px;
+
+      & > * {
+        min-width: auto;
+      }
+    }
+    .DateTo {
+      max-width: 200px;
+
+      & > * {
+        min-width: auto;
+      }
+    }
+  }
+
+  .FiltersContainer {
+    display: flex;
+
+    .FilterContainer {
+      margin-right: 8px;
+
+      &:last-child {
+        margin-right: unset;
+      }
+    }
+  }
+}

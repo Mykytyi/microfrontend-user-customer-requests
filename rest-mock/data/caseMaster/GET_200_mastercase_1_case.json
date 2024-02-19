@@ -1,0 +1,17 @@
+[
+  {
+	"masterCaseId": "782705",
+	"partyId": "103777118",
+	"caseId": "48125843",
+	"crmSystem": "CRM_MOBILE",
+	"caseCondition": "Open-Dispatch",
+	"caseStatus": "Zurücklegen",
+	"typeLevel1": "Anmeldung",
+	"typeLevel2": "A1 Kreditkarte",
+	"typeLevel3": "Administration",
+	"typeLevel4": "-",
+	"caseOwner": "q402463",
+	"createdDate": "2023-06-05T15:30:46",
+	"dueDate": "2023-06-06T15:30:46"
+  }
+]

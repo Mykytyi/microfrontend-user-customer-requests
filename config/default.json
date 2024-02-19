@@ -1,0 +1,10 @@
+{
+  "CASE_MASTER_SERVICE_URL": "http://localhost:6081/CaseMasterService",
+  "port": 9010,
+  "ENABLE_MASTER_CASE_VALIDATION": false,
+  "tracing": {
+    "origin": null,
+    "path": null,
+    "enabled": false
+  }
+}

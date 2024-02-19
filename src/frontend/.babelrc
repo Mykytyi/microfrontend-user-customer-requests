@@ -1,0 +1,23 @@
+{
+  "presets": [
+    [
+      "@babel/preset-env",
+      {
+        "targets": {
+          "browsers": [
+            "last 5 major versions",
+            "chrome >= 114",
+            "firefox >= 102",
+            "not ie > 0"
+          ]
+        }
+      }
+    ],
+    "@babel/preset-typescript",
+    "@babel/preset-react"
+  ],
+  "plugins": [
+    "babel-plugin-transform-async-to-promises",
+    "@babel/plugin-transform-runtime"
+  ]
+}

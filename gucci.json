@@ -1,0 +1,81 @@
+{
+  "$schema": "./node_modules/@a1/gucci-common-json-schemas/schemas/widgets_definition.json",
+  "plugins": [
+    {
+      "name": "User Customers Requests",
+      "title": {
+        "en": "User Customers Requests",
+        "de": "User Customers Requests"
+      },
+      "type": "portal-app",
+      "category": "View Widgets",
+      "bootstrap": "startupUserCustomersRequests",
+      "resources": {
+        "js": [
+          "index.js"
+        ]
+      },
+      "screenshots": [
+        "doc/screenshot.png"
+      ],
+      "defaultConfig": {
+        "resourcesRoot": "./dist/frontend",
+        "restProxies": {
+          "bff": {
+            "targetUri": "http://localhost:9010/api",
+            "sendPermissionsHeader": true,
+            "restrictToRoles": [
+              "widget.microfrontend-user-customer-requests"
+            ]
+          },
+          "tracer": {
+            "targetUri": "${env.TRACING_ORIGIN}${env.TRACING_PATH}"
+          }
+        },
+        "defaultRestrictViewToRoles": [
+          "widget.microfrontend-user-customer-requests"
+        ],
+        "rolePermissions": {},
+        "metaInfo": {
+          "oneCockpit": {
+            "version": 2,
+            "propertyDefinitions": {},
+            "openActions": {
+              "User Customer Requests Summary": {
+                "title": {
+                  "de": "Meine Kundenanliegen - Zusammenfassung",
+                  "en": "Users Customer Requests Summary"
+                },
+                "defaultAppConfig": {
+                  "view": "SUMMARY"
+                },
+                "displayHints": {
+                  "tab": {
+                    "icon": "List"
+                  }
+                }
+              },
+              "User Customer Requests Table": {
+                "title": {
+                  "de": "Meine Kundenanliegen - Liste",
+                  "en": "Users Customer Requests Table"
+                },
+                "defaultAppConfig": {
+                  "view": "TABLE"
+                },
+                "displayHints": {
+                  "tab": {
+                    "icon": "List"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "appConfig": {
+          "view": "SUMMARY"
+        }
+      }
+    }
+  ]
+}

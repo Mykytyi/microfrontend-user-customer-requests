@@ -1,0 +1,43 @@
+.SummaryItem {
+  display: flex;
+  width: auto;
+  margin-bottom: 16px;
+  padding: var(--gucci-padding-small);
+  background-color: var(--gucci-color-background-info-blue);
+
+  .IconContainer {
+    min-width: 44px;
+  }
+
+  .MainContentContainer {
+    p {
+      margin: 0;
+      padding: 0;
+    }
+    .ChipsContainer {
+      display: flex;
+      margin: 4px 0;
+
+      & > * {
+        margin-right: 8px;
+      }
+      & > *:last-child {
+        margin-right: 0;
+      }
+    }
+  }
+}
+
+.NoCasesItem {
+  margin-bottom: 16px;
+  padding: var(--gucci-padding-normal);
+  background-color: var(--gucci-color-border-disabled-grey);
+  text-align: center;
+
+  p {
+    margin: 0;
+    padding: 0;
+  }
+}
+
+

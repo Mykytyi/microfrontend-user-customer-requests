@@ -1,0 +1,146 @@
+/**
+ * GUCCI Widget hotfix pipeline.
+ * Same as Jenkinsfile_CD but it does not deploy anything.
+ */
+
+def JENKINS_WORKER_LABEL = null
+def JENKINS_GIT_CREDENTIALS_ID = 'dk_crm_gucci'
+def JENKINS_NODE_JS_INSTALLATION_LABEL = 'node18'
+
+def GIT_REPO = 'tasktrack.telekom.at/bitbucket/scm/ccf/microfrontend-user-customer-requests.git'
+def INFORM_ABOUT_FAILURE = 'nikita.cherevatyi@extern.a1.at'
+
+def createNewVersion = false
+
+pipeline {
+  agent {
+    label JENKINS_WORKER_LABEL
+  }
+
+  options {
+    timeout(15) // timeout after 15min
+    disableConcurrentBuilds()
+  }
+
+  triggers {
+    pollSCM 'H/15 * * * *'
+  }
+
+  environment {
+    GIT_BRANCH = getGitBranch()
+  }
+
+  stages {
+    stage('Checkout') {
+      steps {
+        deleteDir()
+        echo "Building branch ${GIT_BRANCH}"
+        git branch: GIT_BRANCH, credentialsId: JENKINS_GIT_CREDENTIALS_ID, url: "https://${GIT_REPO}"
+        script {
+          def lastCDBuildFailed = currentBuild.getPreviousBuild()?.result == 'FAILURE'
+          createNewVersion = lastCDBuildFailed || checkShallCreateNewVersion()
+        }
+      }
+    }
+
+    stage('Install dependencies') {
+      steps {
+        nodejs(JENKINS_NODE_JS_INSTALLATION_LABEL) {
+          sh 'npm ci'
+        }
+      }
+    }
+
+    stage('Static analysis and test') {
+      steps {
+        nodejs(JENKINS_NODE_JS_INSTALLATION_LABEL) {
+          sh 'npm run type-check'
+          sh 'npm run lint'
+          sh 'no_proxy=* npm run test'
+        }
+      }
+    }
+
+    stage('Build') {
+      when {
+        expression {
+          return createNewVersion
+        }
+      }
+      steps {
+        nodejs(JENKINS_NODE_JS_INSTALLATION_LABEL) {
+          sh 'npm run build'
+        }
+      }
+    }
+
+    stage('Create Version') {
+      when {
+        expression {
+          return createNewVersion
+        }
+      }
+      steps {
+        nodejs(JENKINS_NODE_JS_INSTALLATION_LABEL) {
+          sh 'npm version patch -m "Upgrade to %s [Jenkins]"'
+          withCredentials([usernamePassword(credentialsId: JENKINS_GIT_CREDENTIALS_ID, passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
+            sh "git push https://${GIT_USERNAME}:${GIT_PASSWORD}@${GIT_REPO} ${GIT_BRANCH} --tags --no-verify"
+          }
+        }
+      }
+    }
+
+    stage('Create Docker Image') {
+      when {
+        expression {
+          return createNewVersion
+        }
+      }
+      steps {
+        nodejs(JENKINS_NODE_JS_INSTALLATION_LABEL) {
+          sh 'npm run docker-push-image'
+        }
+      }
+    }
+  }
+
+  post {
+    success {
+      junit '**/test-reports/*.xml'
+    }
+
+    failure {
+      emailext to: INFORM_ABOUT_FAILURE,
+        recipientProviders: [[$class: 'DevelopersRecipientProvider']],
+        subject: "Jenkins CD Pipeline '${JOB_NAME}' (${BUILD_NUMBER}) failed",
+        body: "Details: ${BUILD_URL} \n\n \${BUILD_LOG}"
+    }
+  }
+
+}
+
+def getGitBranch() {
+  return env.GIT_BRANCH.substring('origin/'.length())
+}
+
+private boolean checkShallCreateNewVersion() {
+  ArrayList commitMessages = [];
+  def changeLogSets = currentBuild.changeSets
+  for (int i = 0; i < changeLogSets.size(); i++) {
+    def entries = changeLogSets[i].items
+    for (int j = 0; j < entries.length; j++) {
+      def entry = entries[j]
+      commitMessages.push(entry.msg);
+    }
+  }
+
+  echo('New commit messages: ' + commitMessages.join('\n'))
+
+  def commitsOnlyFromJenkins = commitMessages.every{msg -> msg.contains("[Jenkins]")}
+  if (commitsOnlyFromJenkins) {
+    echo('Only changes by Jenkins found, don\'t create a new version')
+    return false
+  }
+
+  return true
+}

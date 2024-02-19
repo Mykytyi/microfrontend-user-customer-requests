@@ -1,0 +1,56 @@
+{
+  "env": {
+    "es6": true,
+    "node": true,
+    "browser": true,
+    "jest": true
+  },
+  "parser": "@typescript-eslint/parser",
+  "extends": [
+    "airbnb",
+    "plugin:@a1/gucci/recommended",
+    "plugin:@typescript-eslint/recommended"
+  ],
+  "plugins": [
+    "@typescript-eslint",
+    "@a1/gucci"
+  ],
+  "rules": {
+    "import/no-extraneous-dependencies": "off",
+    "react/require-default-props": "off",
+    "arrow-body-style": "off",
+    "no-shadow": "off",
+    "class-methods-use-this": "off",
+    "import/prefer-default-export": "off",
+    "max-len": "off",
+    "radix": "off",
+    "no-unused-vars": "warn",
+    "no-console": "off",
+    "camelcase": "warn",
+    "no-use-before-define": "off",
+    "import/extensions": [
+      "error",
+      "ignorePackages",
+      {
+        "js": "never",
+        "jsx": "never",
+        "ts": "never",
+        "tsx": "never"
+      }
+    ],
+    "react/jsx-filename-extension": [1, { "extensions": [".tsx"] }],
+    "react/function-component-definition": "off",
+    "@typescript-eslint/ban-ts-comment": "warn",
+    "@typescript-eslint/no-empty-function": "warn",
+    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/no-unused-vars": "warn",
+    "no-param-reassign": "off"
+  },
+  "settings": {
+    "import/resolver": {
+      "node": {
+        "extensions": [".js", ".ts", ".tsx"]
+      }
+    }
+  }
+}

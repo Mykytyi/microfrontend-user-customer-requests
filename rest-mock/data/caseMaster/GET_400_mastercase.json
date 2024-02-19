@@ -1,0 +1,5 @@
+{
+  "errorCode": "2010",
+  "errorMessage": "Either masterCase or childCaseId and crmSystem must be given",
+  "additionalInfo": null
+}

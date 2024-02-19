@@ -1,0 +1,44 @@
+[
+  {
+	"masterCaseId": "795429",
+	"masterCaseType": "MANUAL_CASE",
+	"partyId": "103777118",
+	"caseId": "795429",
+	"crmSystem": "CASE_MASTER",
+	"caseCondition": "POSTPONED",
+	"caseStatus": "in Arbeit A1",
+	"typeLevel1": "TOM",
+	"typeLevel2": "Diverses",
+	"typeLevel3": "DA Sonstige",
+	"caseOwner": "q392480",
+	"createdDate": "2023-10-04T16:17:54.72",
+	"dueDate": "2023-12-06T14:30:00"
+  },
+  {
+	"masterCaseId": "728376",
+	"partyId": "108804448",
+	"caseId": "61885671",
+	"crmSystem": "CRM_FIXED",
+	"caseCondition": "Open",
+	"caseStatus": "(_) Noch nicht überg",
+	"typeLevel1": "CCA",
+	"typeLevel2": "Allgemeiner GF",
+	"typeLevel3": "Storno_Kaufrücktritt",
+	"caseOwner": "q392480",
+	"createdDate": "2021-11-26T10:26:52",
+	"dueDate": "2023-06-06T15:30:46"
+  },
+  {
+	"masterCaseId": "728405",
+	"partyId": "314999999",
+	"caseId": "61890717",
+	"crmSystem": "CRM_FIXED",
+	"caseCondition": "Open",
+	"caseStatus": "Default",
+	"typeLevel1": "TOM",
+	"typeLevel2": "Diverses",
+	"typeLevel3": "A1 Payment Conc RüMe",
+	"caseOwner": "q392480",
+	"createdDate": "2021-11-27T07:16:04"
+  }
+]
